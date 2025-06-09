@@ -5,7 +5,7 @@ import { Client } from "pg";
 const db = new Client({
     user: 'postgres',
     host: 'localhost',
-    database: 'school',
+    database: 'Library',
     password: '1234',
     port: 5432
 });
@@ -24,96 +24,96 @@ db.connect()
     });
 
 // GET /studenti - Dohvati sve studente
-app.get("/studenti", async (req, res) => {
+app.get("/knjige", async (req, res) => {
     try {
-        const result = await db.query("SELECT * FROM studenti ORDER BY id ASC");
+        const result = await db.query("SELECT * FROM knjige ORDER BY id ASC");
         res.json(result.rows);
     } catch (err) {
-        console.log("Error GET from studenti table: ", err.stack);
+        console.log("Error GET from knjige table: ", err.stack);
         res.status(400).json({ error: err.message });
     }
 });
 
-// GET /studenti/:id - Dohvati studenta po ID-u
-app.get("/studenti/:id", async (req, res) => {
+// GET /knjige/:id - Dohvati knjigu po ID-u
+app.get("/knjige/:id", async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await db.query("SELECT * FROM studenti WHERE id = $1", [id]);
+        const result = await db.query("SELECT * FROM knjige WHERE id = $1", [id]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Student nije pronađen" });
+            return res.status(404).json({ error: "knjiga nije pronađena" });
         }
         res.json(result.rows[0]);
     } catch (err) {
-        console.log("Error GET /studenti/:id: ", err.stack);
+        console.log("Error GET /knjige/:id: ", err.stack);
         res.status(400).json({ error: err.message });
     }
 });
 
-// POST /studenti - Dodavanje novog studenta
-app.post("/studenti", async (req, res) => {
-    const { ime, prezime, godina_rodjenja, email } = req.body;
+// POST /knjige - Dodavanje nove knjige
+app.post("/knjige", async (req, res) => {
+    const { naslov, autor, godina_izdanja, zanr } = req.body;
 
-    if (!ime || !prezime) {
+    if (!naslov || !autor) {
         console.log("Data validation failed");
-        return res.status(400).json({ error: "Polja ime i prezime su obavezna" });
+        return res.status(400).json({ error: "Polja naslov i autor su obavezna" });
     }
 
     try {
         const result = await db.query(
-            `INSERT INTO studenti (ime, prezime, godina_rodjenja, email)
+            `INSERT INTO knjige (naslov, autor, godina_izdanja, zanr)
              VALUES ($1, $2, $3, $4)
              RETURNING *`,
-            [ime, prezime, godina_rodjenja, email]
+            [naslov, autor, godina_izdanja, zanr]
         );
         return res.status(201).json(result.rows[0]);
     } catch (err) {
-        console.log("Error POST to studenti table: ", err.stack);
+        console.log("Error POST to knjige table: ", err.stack);
         res.status(400).json({ error: err.message });
     }
 });
 
-// PUT /studenti/:id - Ažuriranje studenta
-app.put("/studenti/:id", async (req, res) => {
+// PUT /knjige/:id - Ažuriranje knjige
+app.put("/knjige/:id", async (req, res) => {
     const { id } = req.params;
-    const { ime, prezime, godina_rodjenja, email } = req.body;
+    const { naslov, autor, godina_izdanja, zanr } = req.body;
 
     try {
         const result = await db.query(
-            `UPDATE studenti
-             SET ime = $1,
-                 prezime = $2,
-                 godina_rodjenja = $3,
-                 email = $4
+            `UPDATE knjige
+             SET naslov = $1,
+                 autor = $2,
+                 godina_izdanja = $3,
+                 zanr = $4
              WHERE id = $5
              RETURNING *;`,
-            [ime, prezime, godina_rodjenja, email, id]
+            [naslov, autor, godina_izdanja, zanr, id]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Student nije pronađen" });
+            return res.status(404).json({ error: "Knjiga nije pronađena" });
         }
 
         return res.status(200).json(result.rows[0]);
     } catch (err) {
-        console.log("Error PUT to studenti table: ", err.stack);
+        console.log("Error PUT to knjige table: ", err.stack);
         res.status(400).json({ error: err.message });
     }
 });
 
-// DELETE /studenti/:id - Brisanje studenta
-app.delete("/studenti/:id", async (req, res) => {
+// DELETE /knjige/:id - Brisanje knjige
+app.delete("/knjige/:id", async (req, res) => {
     const { id } = req.params;
     try {
         const result = await db.query(
-            'DELETE FROM studenti WHERE id = $1 RETURNING *;',
+            'DELETE FROM knjige WHERE id = $1 RETURNING *;',
             [id]
         );
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Student nije pronađen" });
+            return res.status(404).json({ error: "Knjiga nije pronađena" });
         }
-        res.json({ message: `Student s ID ${id} obrisan.` });
+        res.json({ message: `Knjiga s ID ${id} obrisana.` });
     } catch (err) {
-        console.log("Error DELETE from studenti table: ", err.stack);
+        console.log("Error DELETE from knjige table: ", err.stack);
         res.status(400).json({ error: err.message });
     }
 });
@@ -123,11 +123,11 @@ app.get("/", (req, res) => {
     res.send(`
         <h1>CRUD operacije</h1>
         <ul>
-            <li>GET /studenti - Dohvati sve studente</li>
-            <li>GET /studenti/:id - Dohvati jednog studenta po ID-u</li>
-            <li>POST /studenti - Upis novog studenta</li>
-            <li>PUT /studenti/:id - Ažuriraj studenta</li>
-            <li>DELETE /studenti/:id - Obriši studenta</li>
+            <li>GET /knjige ---------- Dohvati sve knjige</li>
+            <li>GET /knjige/:id ------ Dohvati jednu knjigu po ID-u</li>
+            <li>POST /knjige --------- Upis nove knjige</li>
+            <li>PUT /knjige/:id ------ Ažuriraj knjigu</li>
+            <li>DELETE /knjige/:id --- Obriši knjigu</li>
         </ul>
     `);
 });
