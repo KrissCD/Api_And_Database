@@ -2,13 +2,13 @@ import uuid
 
 libraries = [
     {
-        "id": str(uuid.uuid4()),
+        "id": "1",
         "name": "City Library"
-        },
+    },
     {
-        "id": str(uuid.uuid4()),
+        "id": "2",
         "name": "University Library"
-        }
+    }
 ]
 
 books = [
