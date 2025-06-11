@@ -1,0 +1,3 @@
+Flask-smorest
+Flask
+Python.dotenv
